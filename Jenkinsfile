@@ -1,23 +1,30 @@
 pipeline {
     agent any
+
     stages {
-        stage('Checkout') {
+        stage('Build') {
             steps {
-                git 'https://github.com/Curiousgoal202/great-webpage.git'
-            }
-        }
-        stage('Deploy') {
-            steps {
-                sh 'sudo cp index.html /var/www/html/index.html'
+                echo 'Building...'
+                // your build steps here
             }
         }
     }
+
     post {
         success {
-            slackSend (color: '#00FF00', message: "✅ SUCCESS: Job '${env.JOB_NAME} #${env.BUILD_NUMBER}' deployed the page!")
+            sh '''
+            curl -X POST -H 'Content-type: application/json' \
+            --data '{"text":"✅ Jenkins build succeeded!"}' \
+            https://hooks.slack.com/services/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
+            '''
         }
+
         failure {
-            slackSend (color: '#FF0000', message: "❌ FAILED: Job '${env.JOB_NAME} #${env.BUILD_NUMBER}' failed.")
+            sh '''
+            curl -X POST -H 'Content-type: application/json' \
+            --data '{"text":"❌ Jenkins build failed!"}' \
+            https://hooks.slack.com/services/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
+            '''
         }
     }
 }
