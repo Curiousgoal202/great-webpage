@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        SLACK_WEBHOOK = credentials('slack_webhook11111')  // Replace with your credential ID
+        SLACK_WEBHOOK = credentials('slack_webhook11111')  // Jenkins secret text
     }
 
     stages {
@@ -16,71 +16,68 @@ pipeline {
     post {
         success {
             script {
-                sh """
-                    curl -X POST -H 'Content-type: application/json' \\
-                    --data '{
-                        "attachments": [
-                            {
-                                "fallback": "✅ Jenkins Build Succeeded!",
-                                "color": "good",
-                                "pretext": "*🎉 Build Notification - SUCCESS 🎉*",
-                                "title": "${env.JOB_NAME} - #${env.BUILD_NUMBER}",
-                                "title_link": "${env.BUILD_URL}",
-                                "text": "✅ *Build succeeded!*",
-                                "fields": [
-                                    {
-                                        "title": "Job",
-                                        "value": "${env.JOB_NAME}",
-                                        "short": true
-                                    },
-                                    {
-                                        "title": "Build Number",
-                                        "value": "#${env.BUILD_NUMBER}",
-                                        "short": true
-                                    }
-                                ],
-                                "footer": "Jenkins CI/CD 💻",
-                                "ts": $(date +%s)
-                            }
-                        ]
-                    }' "$SLACK_WEBHOOK"
+                def message = """
+                {
+                  "attachments": [
+                    {
+                      "fallback": "✅ Build #${env.BUILD_NUMBER} Succeeded!",
+                      "color": "#36a64f",
+                      "pretext": "*🎉 Build Success Notification 🎉*",
+                      "title": "✅ Jenkins Pipeline",
+                      "text": "🟢 Build *#${env.BUILD_NUMBER}* for job *${env.JOB_NAME}* completed successfully.",
+                      "fields": [
+                        {
+                          "title": "Status",
+                          "value": "Success ✅",
+                          "short": true
+                        },
+                        {
+                          "title": "Build Number",
+                          "value": "${env.BUILD_NUMBER}",
+                          "short": true
+                        }
+                      ],
+                      "footer": "Jenkins CI/CD",
+                      "ts": ${System.currentTimeMillis() / 1000}
+                    }
+                  ]
+                }
                 """
+                sh """curl -X POST -H 'Content-type: application/json' --data '${message}' "$SLACK_WEBHOOK" """
             }
         }
 
         failure {
             script {
-                sh """
-                    curl -X POST -H 'Content-type: application/json' \\
-                    --data '{
-                        "attachments": [
-                            {
-                                "fallback": "❌ Jenkins Build Failed!",
-                                "color": "danger",
-                                "pretext": "*💥 Build Notification - FAILURE 💥*",
-                                "title": "${env.JOB_NAME} - #${env.BUILD_NUMBER}",
-                                "title_link": "${env.BUILD_URL}",
-                                "text": "❌ *Build failed!*",
-                                "fields": [
-                                    {
-                                        "title": "Job",
-                                        "value": "${env.JOB_NAME}",
-                                        "short": true
-                                    },
-                                    {
-                                        "title": "Build Number",
-                                        "value": "#${env.BUILD_NUMBER}",
-                                        "short": true
-                                    }
-                                ],
-                                "footer": "Jenkins CI/CD 💻",
-                                "ts": $(date +%s)
-                            }
-                        ]
-                    }' "$SLACK_WEBHOOK"
+                def message = """
+                {
+                  "attachments": [
+                    {
+                      "fallback": "❌ Build #${env.BUILD_NUMBER} Failed!",
+                      "color": "#ff0000",
+                      "pretext": "*🚨 Build Failure Alert 🚨*",
+                      "title": "❌ Jenkins Pipeline",
+                      "text": "🔴 Build *#${env.BUILD_NUMBER}* for job *${env.JOB_NAME}* has failed.",
+                      "fields": [
+                        {
+                          "title": "Status",
+                          "value": "Failed ❌",
+                          "short": true
+                        },
+                        {
+                          "title": "Build Number",
+                          "value": "${env.BUILD_NUMBER}",
+                          "short": true
+                        }
+                      ],
+                      "footer": "Jenkins CI/CD",
+                      "ts": ${System.currentTimeMillis() / 1000}
+                    }
+                  ]
+                }
                 """
+                sh """curl -X POST -H 'Content-type: application/json' --data '${message}' "$SLACK_WEBHOOK" """
             }
         }
     }
 }
-
