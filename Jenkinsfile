@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        SLACK_WEBHOOK = credentials('slack_webhook11')  // Use the ID from Jenkins credentials
+    }
+
     stages {
         stage('Example') {
             steps {
@@ -11,18 +15,18 @@ pipeline {
 
     post {
         success {
-            sh '''
-            curl -X POST -H 'Content-type: application/json' \
-            --data '{"text":"✅ Jenkins build succeeded!"}' \
-            https://hooks.slack.com/services/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
-            '''
+            sh """
+                curl -X POST -H 'Content-type: application/json' \
+                --data '{"text":"✅ Jenkins build succeeded!"}' \
+                "$SLACK_WEBHOOK"
+            """
         }
         failure {
-            sh '''
-            curl -X POST -H 'Content-type: application/json' \
-            --data '{"text":"❌ Jenkins build failed!"}' \
-            https://hooks.slack.com/services/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
-            '''
+            sh """
+                curl -X POST -H 'Content-type: application/json' \
+                --data '{"text":"❌ Jenkins build failed!"}' \
+                "$SLACK_WEBHOOK"
+            """
         }
     }
 }
